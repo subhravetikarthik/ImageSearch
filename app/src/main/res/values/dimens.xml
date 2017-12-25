@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="padding_size_small">5dp</dimen>
+    <dimen name="margin_padding_size_small">4dp</dimen>
+    <dimen name="card_view_height">300dp</dimen>
+    <dimen name="card_radius">5dp</dimen>
+    <dimen name="margin_size_large">10dp</dimen>
+</resources>

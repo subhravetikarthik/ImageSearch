@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.demoapp.fieldwire.MainActivity">
+
+    <Button android:id="@+id/show_results"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:text="@string/show_results"
+        android:padding="@dimen/padding_size_small"
+        android:layout_margin="@dimen/margin_padding_size_small"
+        android:gravity="center"/>
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_below="@+id/show_results"
+        android:layout_margin="5dp"
+        android:visibility="invisible"
+        android:padding="@dimen/padding_size_small" />
+
+
+    <TextView
+        android:id="@+id/error_msg"
+        android:padding="@dimen/padding_size_small"
+        android:layout_margin="@dimen/margin_size_large"
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/show_results"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/progress_bar"
+        android:layout_toRightOf="@+id/progress_bar"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="@color/red"
+        android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+    <FrameLayout
+        android:id="@+id/frame_container"
+        android:layout_below="@+id/error_msg"
+        android:layout_margin="@dimen/margin_padding_size_small"
+        android:padding="@dimen/padding_size_small"
+        android:background="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+</RelativeLayout >
