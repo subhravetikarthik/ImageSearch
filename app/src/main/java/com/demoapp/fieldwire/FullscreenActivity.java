@@ -112,6 +112,7 @@ public class FullscreenActivity extends AppCompatActivity {
             Picasso.with(this)
                     .load(url)
                     .networkPolicy(NetworkPolicy.OFFLINE)
+                    .fit()
                     .into((ImageView)mContentView, new Callback() {
                         @Override
                         public void onSuccess() {
@@ -122,7 +123,9 @@ public class FullscreenActivity extends AppCompatActivity {
                         public void onError() {
                             Log.d("Picasso", "Try again in ONLINE mode if load from cache is failed");
 
-                            Picasso.with(getApplicationContext()).load(url).into((ImageView) mContentView, new Callback() {
+                            Picasso.with(getApplicationContext())
+                                    .load(url)
+                                    .into((ImageView)mContentView, new Callback() {
                                 @Override
                                 public void onSuccess() {
                                     Log.d("Picasso", "Image loaded from web>>>" + url);
@@ -131,7 +134,8 @@ public class FullscreenActivity extends AppCompatActivity {
                                 @Override
                                 public void onError() {
                                     Log.d("Picasso", "Failed to load image online and offline, " +
-                                            "make sure you enabled INTERNET permission for your app and the url is correct>>>>>>>" + url);
+                                            "make sure you enabled INTERNET permission for your app " +
+                                            "and the url is correct>>>>>>>" + url);
                                 }
                             });
                         }

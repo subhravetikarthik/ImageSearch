@@ -16,6 +16,6 @@ public interface ApiInterface {
      *                 day | week | month | year | all, defaults to all (optional)
      *        page - integer - the data paging number (optional)
      */
-    @GET("/3/gallery/search/time/all?q=santa AND snow")
-    Call<SearchResult> getSearchResult();
+    @GET("/3/gallery/search/time/1/all")
+    Call<SearchResult> getSearchResult(@Query("q") String query);
 }

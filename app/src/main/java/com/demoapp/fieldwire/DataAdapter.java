@@ -41,6 +41,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         Picasso.with(appContext)
                 .load(url)
                 .networkPolicy(NetworkPolicy.OFFLINE)
+                .fit()
                 .into(holder.listingImage, new Callback() {
                     @Override
                     public void onSuccess() {
@@ -49,9 +50,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
                     @Override
                     public void onError() {
-                        Log.d("Picasso", "Try again in ONLINE mode if load from cache is failed");
+                        Log.d("Picasso", "Try again in ONLINE mode if load from cache " +
+                                "is failed");
 
-                        Picasso.with(appContext).load(url).into(holder.listingImage, new Callback() {
+                        Picasso.with(appContext)
+                                .load(url)
+                                .into(holder.listingImage, new Callback() {
                             @Override
                             public void onSuccess() {
                                 Log.d("Picasso", "Image loaded from web>>>" + url);
@@ -60,12 +64,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
                             @Override
                             public void onError() {
                                 Log.d("Picasso", "Failed to load image online and offline, " +
-                                        "make sure you enabled INTERNET permission for your app and the url is correct>>>>>>>" + url);
+                                        "make sure you enabled INTERNET permission for your app " +
+                                        "and the url is correct>>>>>>>" + url);
                             }
                         });
                     }
                 });
-
     }
 
     @Override

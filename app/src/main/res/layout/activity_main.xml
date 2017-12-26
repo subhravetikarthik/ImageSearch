@@ -1,23 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.demoapp.fieldwire.MainActivity">
 
-    <Button android:id="@+id/show_results"
-        android:layout_height="wrap_content"
+    <com.lapism.searchview.SearchView
+        android:id="@+id/search_view"
         android:layout_width="match_parent"
-        android:text="@string/show_results"
+        android:layout_height="wrap_content"
         android:padding="@dimen/padding_size_small"
         android:layout_margin="@dimen/margin_padding_size_small"
-        android:gravity="center"/>
+        android:gravity="center"
+        app:search_voice="false" />
 
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:layout_below="@+id/show_results"
+        android:layout_below="@+id/search_view"
         android:layout_margin="5dp"
         android:visibility="invisible"
         android:padding="@dimen/padding_size_small" />
@@ -30,7 +32,7 @@
         android:visibility="invisible"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/show_results"
+        android:layout_below="@+id/search_view"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_toEndOf="@+id/progress_bar"

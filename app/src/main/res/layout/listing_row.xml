@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:autofit="http://schemas.android.com/tools"
     card_view:cardCornerRadius="@dimen/card_radius"
     card_view:cardElevation="@dimen/card_radius"
     card_view:cardUseCompatPadding="true"
@@ -18,7 +19,7 @@
             android:padding="@dimen/padding_size_small"
             android:scaleType="fitXY"
             android:id="@+id/imageView"/>
-        <TextView
+        <me.grantland.widget.AutofitTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
@@ -29,9 +30,12 @@
             android:layout_below="@+id/imageView"
             android:layout_marginTop="@dimen/margin_padding_size_small"
             android:padding="@dimen/padding_size_small"
-            android:maxLines="2"
+            android:singleLine="false"
+            android:maxLines="3"
+            autofit:minTextSize="40sp"
             android:ellipsize="end"
             android:textStyle="bold"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceMedium">
+        </me.grantland.widget.AutofitTextView>
     </RelativeLayout>
 </android.support.v7.widget.CardView>

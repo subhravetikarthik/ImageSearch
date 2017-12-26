@@ -46,4 +46,7 @@ dependencies {
     annotationProcessor 'com.google.dagger:dagger-compiler:2.5'
     provided 'javax.annotation:jsr250-api:1.0'
     provided 'org.glassfish:javax.annotation:10.0-b28'
+    compile 'me.grantland:autofittextview:0.2.+'
+    implementation 'com.lapism:searchview:5.0.0-alpha7'
+    implementation 'com.google.android:flexbox:0.3.1'
 }
