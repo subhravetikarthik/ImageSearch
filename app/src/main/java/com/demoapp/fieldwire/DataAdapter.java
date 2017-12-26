@@ -23,13 +23,10 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     public DataAdapter(List<Photo> photos, Context context) {
         this.photos = photos;
         this.appContext = context;
-
-        Log.d("Karthik", "DataAdapter photos: " + photos.size());
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Log.d("Karthik", "onCreateViewHolder");
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.listing_row, parent, false);
         ViewHolder mViewHolder = new ViewHolder(view);
         view.setOnClickListener(v -> mListener.onItemClick(v, mViewHolder.getAdapterPosition()));
@@ -38,14 +35,39 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(DataAdapter.ViewHolder holder, int position) {
-        Log.d("Karthik", "onBindViewHolder");
         holder.listingTitle.setText(photos.get(position).getTitle());
         String url = photos.get(position).getUrl();
-        Log.d("Karthik", "Title: " + photos.get(position).getTitle());
-        Log.d("Karthik", "url: " + url);
         Picasso.with(appContext)
                 .load(url)
-                .into(holder.listingImage);
+                .networkPolicy(NetworkPolicy.OFFLINE)
+                .into(holder.listingImage, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d("Picasso", "Image loaded from cache>>>" + url);
+                    }
+
+                    @Override
+                    public void onError() {
+                        Log.d("Picasso", "Try again in ONLINE mode if load from cache " +
+                                "is failed");
+
+                        Picasso.with(appContext)
+                                .load(url)
+                                .into(holder.listingImage, new Callback() {
+                                    @Override
+                                    public void onSuccess() {
+                                        Log.d("Picasso", "Image loaded from web>>>" + url);
+                                    }
+
+                                    @Override
+                                    public void onError() {
+                                        Log.d("Picasso", "Failed to load image online and offline, " +
+                                                "make sure you enabled INTERNET permission for your app " +
+                                                "and the url is correct>>>>>>>" + url);
+                                    }
+                                });
+                    }
+                });
     }
 
     @Override

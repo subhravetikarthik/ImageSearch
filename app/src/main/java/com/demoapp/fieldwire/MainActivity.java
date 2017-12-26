@@ -1,7 +1,5 @@
 package com.demoapp.fieldwire;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -24,7 +22,6 @@ import com.demoapp.fieldwire.Model.Result;
 import com.demoapp.fieldwire.Model.SearchResult;
 import com.demoapp.fieldwire.Model.Tag;
 import com.lapism.searchview.SearchAdapter;
-import com.lapism.searchview.SearchHistoryTable;
 import com.lapism.searchview.SearchItem;
 import com.lapism.searchview.SearchView;
 
@@ -46,9 +43,8 @@ public class MainActivity extends AppCompatActivity implements CustomItemClickLi
     private static final String BASE_URL = "https://api.imgur.com";
     TextView errorMsg;
     SearchView searchView;
-    List<Photo> photos = new ArrayList<>();
+    List<Photo> photos;
     Call<SearchResult> call;
-    List<Result> resultList;
     List<Tag> tagList;
     String queryString = null;
 
@@ -96,14 +92,11 @@ public class MainActivity extends AppCompatActivity implements CustomItemClickLi
         mRecyclerView = findViewById(R.id.recycler_view);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        StaggeredGridLayoutManager staggeredGridLayoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         errorMsg = findViewById(R.id.error_msg);
         progressBar = findViewById(R.id.progress_bar);
         searchView = findViewById(R.id.search_view);
-
     }
 
     private boolean isNetworkAvailable() {
@@ -153,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements CustomItemClickLi
 
             // Request customization: add request headers
             Request.Builder requestBuilder = original.newBuilder()
-                    .header("Authorization", "Client-ID e1167a9b3912ed2");
+                    .header("Authorization", Constants.IMGUR_CLIENT_ID);
 
             Request request = requestBuilder.build();
             return chain.proceed(request);
@@ -170,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements CustomItemClickLi
         ApiInterface api = retrofit.create(ApiInterface.class);
 
         if(queryString == null) {
-            call = api.getViralResults();
+            call = api.getViralResults(); // To load viral images
         } else {
             call = api.getSearchResult(queryString);
         }
@@ -180,8 +173,9 @@ public class MainActivity extends AppCompatActivity implements CustomItemClickLi
             public void onResponse(@NonNull retrofit2.Call<SearchResult> call,
                                    @NonNull retrofit2.Response<SearchResult> response) {
                 if (response.isSuccessful()) {
+                    photos = new ArrayList<>();
                     SearchResult searchResult = response.body();
-                    resultList = searchResult != null ? searchResult.getData() : null;
+                    List<Result> resultList = searchResult != null ? searchResult.getData() : null;
                     for(int i=0;i<resultList.size();i++) {
                         if(resultList.get(i).getIsAlbum()) {
                             List<Image> imgList = resultList.get(i).getImages();
