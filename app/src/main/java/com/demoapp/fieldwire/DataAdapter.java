@@ -18,58 +18,34 @@ import java.util.List;
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
     private List<Photo> photos;
     private Context appContext;
-    private CustomItemClickListener listener;
+    private CustomItemClickListener mListener;
 
-    public DataAdapter(List<Photo> photos, Context context,  CustomItemClickListener listener) {
+    public DataAdapter(List<Photo> photos, Context context) {
         this.photos = photos;
         this.appContext = context;
-        this.listener = listener;
+
+        Log.d("Karthik", "DataAdapter photos: " + photos.size());
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Log.d("Karthik", "onCreateViewHolder");
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.listing_row, parent, false);
-        final ViewHolder mViewHolder = new ViewHolder(view);
-        view.setOnClickListener(v -> listener.onItemClick(v, mViewHolder.getAdapterPosition()));
+        ViewHolder mViewHolder = new ViewHolder(view);
+        view.setOnClickListener(v -> mListener.onItemClick(v, mViewHolder.getAdapterPosition()));
         return mViewHolder;
     }
 
     @Override
     public void onBindViewHolder(DataAdapter.ViewHolder holder, int position) {
+        Log.d("Karthik", "onBindViewHolder");
         holder.listingTitle.setText(photos.get(position).getTitle());
         String url = photos.get(position).getUrl();
+        Log.d("Karthik", "Title: " + photos.get(position).getTitle());
+        Log.d("Karthik", "url: " + url);
         Picasso.with(appContext)
                 .load(url)
-                .networkPolicy(NetworkPolicy.OFFLINE)
-                .fit()
-                .into(holder.listingImage, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        Log.d("Picasso", "Image loaded from cache>>>" + url);
-                    }
-
-                    @Override
-                    public void onError() {
-                        Log.d("Picasso", "Try again in ONLINE mode if load from cache " +
-                                "is failed");
-
-                        Picasso.with(appContext)
-                                .load(url)
-                                .into(holder.listingImage, new Callback() {
-                            @Override
-                            public void onSuccess() {
-                                Log.d("Picasso", "Image loaded from web>>>" + url);
-                            }
-
-                            @Override
-                            public void onError() {
-                                Log.d("Picasso", "Failed to load image online and offline, " +
-                                        "make sure you enabled INTERNET permission for your app " +
-                                        "and the url is correct>>>>>>>" + url);
-                            }
-                        });
-                    }
-                });
+                .into(holder.listingImage);
     }
 
     @Override
@@ -77,7 +53,11 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
         return photos.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public void setClickListener(CustomItemClickListener itemClickListener) {
+        this.mListener = itemClickListener;
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private ImageView listingImage;
         private TextView listingTitle;
 
@@ -85,6 +65,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder> {
             super(view);
             listingImage = view.findViewById(R.id.imageView);
             listingTitle = view.findViewById(R.id.title);
+            view.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (mListener != null) mListener.onItemClick(v, getAdapterPosition());
         }
     }
 }

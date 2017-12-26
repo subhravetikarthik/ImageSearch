@@ -18,4 +18,7 @@ public interface ApiInterface {
      */
     @GET("/3/gallery/search/time/1/all")
     Call<SearchResult> getSearchResult(@Query("q") String query);
+
+    @GET("/3/gallery/hot/viral/all?showViral=true")
+    Call<SearchResult> getViralResults();
 }

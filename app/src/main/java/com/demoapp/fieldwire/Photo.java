@@ -1,9 +1,13 @@
 package com.demoapp.fieldwire;
 
+import com.demoapp.fieldwire.Model.Tag;
+import java.util.List;
+
 class Photo {
     String id;
     String title;
     String url;
+    List<Tag> tag;
 
     public String getId() {
         return id;
@@ -27,5 +31,13 @@ class Photo {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public List<Tag> getTag() {
+        return tag;
+    }
+
+    public void setTag( List<Tag> tag) {
+        this.tag = tag;
     }
 }

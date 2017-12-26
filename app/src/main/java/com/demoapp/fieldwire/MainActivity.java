@@ -2,17 +2,28 @@ package com.demoapp.fieldwire;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.support.v4.view.GravityCompat;
+import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
+import com.demoapp.fieldwire.Model.Image;
+import com.demoapp.fieldwire.Model.Result;
+import com.demoapp.fieldwire.Model.SearchResult;
+import com.demoapp.fieldwire.Model.Tag;
 import com.lapism.searchview.SearchAdapter;
-import com.lapism.searchview.SearchFilter;
 import com.lapism.searchview.SearchHistoryTable;
 import com.lapism.searchview.SearchItem;
 import com.lapism.searchview.SearchView;
@@ -20,21 +31,41 @@ import com.lapism.searchview.SearchView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+public class MainActivity extends AppCompatActivity implements CustomItemClickListener{
 
     ProgressBar progressBar;
-    SearchView searchView;
     List<SearchItem> searchList = new ArrayList<>();
+    DataAdapter dataAdapter;
+    RecyclerView mRecyclerView;
+    private static final String BASE_URL = "https://api.imgur.com";
+    TextView errorMsg;
+    SearchView searchView;
+    List<Photo> photos = new ArrayList<>();
+    Call<SearchResult> call;
+    List<Result> resultList;
+    List<Tag> tagList;
+    String queryString = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        progressBar = findViewById(R.id.progress_bar);
-        searchView = findViewById(R.id.search_view);
-
-        SearchHistoryTable mHistoryDatabase = new SearchHistoryTable(this);
+        initViews();
+        if(isNetworkAvailable()) {
+            loadJSON();
+            errorMsg.setVisibility(View.INVISIBLE);
+        } else {
+            progressBar.setVisibility(View.INVISIBLE);
+            errorMsg.setVisibility(View.VISIBLE);
+            errorMsg.setText(getResources().getString(R.string.error_text));
+        }
 
         if (searchView != null) {
             searchView.setVersionMargins(SearchView.VersionMargins.TOOLBAR_SMALL);
@@ -42,11 +73,10 @@ public class MainActivity extends AppCompatActivity {
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {
-                  //  mHistoryDatabase.addItem(new SearchItem(query));
                     searchList.add(new SearchItem(query));
                     searchView.close(false);
-
-                    initFragment(query);
+                    queryString = query;
+                    new JSONAsyncTask().execute();
                     return true;
                 }
 
@@ -57,33 +87,146 @@ public class MainActivity extends AppCompatActivity {
             });
 
             SearchAdapter searchAdapter = new SearchAdapter(this, searchList);
-            searchAdapter.setOnSearchItemClickListener(new SearchAdapter.OnSearchItemClickListener() {
-                @Override
-                public void onSearchItemClick(View view, int position, String text) {
-                 //   mHistoryDatabase.addItem(new SearchItem(text));
-                    searchList.add(new SearchItem(text));
-                    initFragment(text);
-                    searchView.close(false);
-                }
-            });
             searchView.setAdapter(searchAdapter);
             searchAdapter.notifyDataSetChanged();
-
         }
     }
 
-    private void initFragment(String query) {
-        progressBar.setVisibility(View.VISIBLE);
+    private void initViews(){
+        mRecyclerView = findViewById(R.id.recycler_view);
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        StaggeredGridLayoutManager staggeredGridLayoutManager =
+                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        Bundle bundle = new Bundle();
-        bundle.putString("params", query);
+        errorMsg = findViewById(R.id.error_msg);
+        progressBar = findViewById(R.id.progress_bar);
+        searchView = findViewById(R.id.search_view);
 
-        Fragment fragment = new ListFragment();
-        fragment.setArguments(bundle);
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.frame_container, fragment)
-                .addToBackStack(null)
-                .commit();
+    }
+
+    private boolean isNetworkAvailable() {
+        NetworkInfo activeNetworkInfo = null;
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if(connectivityManager!=null) {
+            activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        }
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    private void loadJSON() {
+        new JSONAsyncTask().execute();
+    }
+
+    @Override
+    public void onItemClick(View v, int position) {
+        Intent intent = new Intent(MainActivity.this, FullscreenActivity.class);
+        intent.putExtra("url", photos.get(position).url);
+        startActivity(intent);
+    }
+
+    private class JSONAsyncTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            parseJSON();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            progressBar.setVisibility(ProgressBar.VISIBLE);
+        }
+    }
+
+    private void parseJSON() {
+        OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+        httpClient.addInterceptor(chain -> {
+            Request original = chain.request();
+
+            // Request customization: add request headers
+            Request.Builder requestBuilder = original.newBuilder()
+                    .header("Authorization", "Client-ID e1167a9b3912ed2");
+
+            Request request = requestBuilder.build();
+            return chain.proceed(request);
+        });
+
+        OkHttpClient client = httpClient.build();
+        Retrofit.Builder builder = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create());
+
+        Retrofit retrofit = builder.build();
+
+        ApiInterface api = retrofit.create(ApiInterface.class);
+
+        if(queryString == null) {
+            call = api.getViralResults();
+        } else {
+            call = api.getSearchResult(queryString);
+        }
+        call.enqueue(new retrofit2.Callback<SearchResult>() {
+
+            @Override
+            public void onResponse(@NonNull retrofit2.Call<SearchResult> call,
+                                   @NonNull retrofit2.Response<SearchResult> response) {
+                if (response.isSuccessful()) {
+                    SearchResult searchResult = response.body();
+                    resultList = searchResult != null ? searchResult.getData() : null;
+                    for(int i=0;i<resultList.size();i++) {
+                        if(resultList.get(i).getIsAlbum()) {
+                            List<Image> imgList = resultList.get(i).getImages();
+                            tagList = resultList.get(i).getTags();
+                            for(int j=0;j<imgList.size();j++) {
+                                Photo photo = new Photo();
+                                photo.id = imgList.get(j).getId();
+                                if(imgList.get(j).getTitle() != null) {
+                                    photo.title = imgList.get(j).getTitle().toString();
+                                } else if(imgList.get(j).getDescription() != null) {
+                                    photo.title = imgList.get(j).getDescription().toString();
+                                }
+                                photo.url = imgList.get(j).getLink();
+                                photo.tag = tagList;
+                                photos.add(photo);
+                            }
+                        } else {
+                            Photo photo = new Photo();
+                            tagList = resultList.get(i).getTags();
+                            photo.id = resultList.get(i).getId();
+                            if(resultList.get(i).getTitle() != null) {
+                                photo.title = resultList.get(i).getTitle();
+                            } else if(resultList.get(i).getDescription() != null) {
+                                photo.title = resultList.get(i).getDescription().toString();
+                            }
+                            photo.url = resultList.get(i).getLink();
+                            photo.tag = tagList;
+                            photos.add(photo);
+                        }
+                    }
+                    updateDataAdapter();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull retrofit2.Call<SearchResult> call,@NonNull Throwable t) {
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+        });
+    }
+
+    private void updateDataAdapter() {
+        dataAdapter = new DataAdapter(photos,this);
+        dataAdapter.setClickListener(this);
+        mRecyclerView.setAdapter(dataAdapter);
+        progressBar.setVisibility(ProgressBar.INVISIBLE);
     }
 }
