@@ -11,8 +11,6 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -139,6 +137,8 @@ public class MainActivity extends AppCompatActivity implements CustomItemClickLi
         }
     }
 
+    /* Method to parse JSON.
+     **/
     private void parseJSON() {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         httpClient.addInterceptor(chain -> {
@@ -217,6 +217,8 @@ public class MainActivity extends AppCompatActivity implements CustomItemClickLi
         });
     }
 
+    /* Method to update the data adapter with new photos
+    **/
     private void updateDataAdapter() {
         dataAdapter = new DataAdapter(photos,this);
         dataAdapter.setClickListener(this);
